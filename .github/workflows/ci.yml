@@ -1,0 +1,29 @@
+ame: ci
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build the app
+        run: dotnet build HelloCicd -c Release
+
+      - name: Build the image
+        run: docker build -t hello-cicd:test HelloCicd
+
+      - name: Smoke test the container
+        run: |
+          docker run -d -p 8080:8080 --name app hello-cicd:test
+          sleep 5
+          curl --fail --silent http://localhost:8080/health
